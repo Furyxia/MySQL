@@ -1314,13 +1314,13 @@ GET_FORMAT(val_type,format_type)返回日期时间字符串的显示格式，val
 |DATE|USA|%m.%d.%Y|
 |TIME|EUR|%H.%i.%s|
 |TIME|INTERVAL|%H%i%s|
-|TIME|ISO|%H：%i：%s|
-|TIME|JIS|%H：%i：%s|
-|TIME|USA|%h：%i：%s%p|
+|TIME|ISO|%H:%i:%s|
+|TIME|JIS|%H:%i:%s|
+|TIME|USA|%h:%i:%s%p|
 |DATETIME|EUR|%Y-%m-%d %H.%i.%s|
 |DATETIME|INTERVAL&#160;&#160;&#160;&#160;|%Y%m%d%H%i%s|
 |DATETIME|ISO|%Y-%m-%d %H:%i:%s|
-|DATETIME|JIS|%Y-%m-%d %H：%i：%s&#160;&#160;&#160;&#160;|
+|DATETIME|JIS|%Y-%m-%d %H:%i:%s&#160;&#160;&#160;&#160;|
 |DATETIME&#160;&#160;&#160;&#160;|USA|%Y-%m-%d %H.%i.%s|
 
 **示例：**
