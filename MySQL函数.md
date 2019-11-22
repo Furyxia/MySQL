@@ -701,7 +701,7 @@ mysql> SELECT MID('breakfast',5) AS col1,
 +-------+------+------+------+
 ```
 
-#### 提示
+#### 提示：
 
 若对len使用一个小于1的值，则结果始终为空字符串。
 
@@ -1055,7 +1055,7 @@ mysql> SELECT SECOND('10:10:04');
 +--------------------+
 ```
 
-#### 提示
+#### 提示：
 
 YEAR()函数中，'00~69'转换为'2000~2069'，'70~99'转换为'1970~1999'！
 
@@ -1314,13 +1314,13 @@ GET_FORMAT(val_type,format_type)返回日期时间字符串的显示格式，val
 |DATE|USA|%m.%d.%Y|
 |TIME|EUR|%H.%i.%s|
 |TIME|INTERVAL|%H%i%s|
-|TIME|ISO|%H:%i:%s|
-|TIME|JIS|%H:%i:%s|
-|TIME|USA|%h:%i:%s%p|
+|TIME|ISO|%H：%i：%s|
+|TIME|JIS|%H：%i：%s|
+|TIME|USA|%h：%i：%s%p|
 |DATETIME|EUR|%Y-%m-%d %H.%i.%s|
 |DATETIME|INTERVAL&#160;&#160;&#160;&#160;|%Y%m%d%H%i%s|
-|DATETIME|ISO|%Y-%m-%d %H:%i:%s|
-|DATETIME|JIS|%Y-%m-%d %H:%i:%s&#160;&#160;&#160;&#160;|
+|DATETIME|ISO|%Y-%m-%d %H：%i：%s|
+|DATETIME|JIS|%Y-%m-%d %H：%i：%s&#160;&#160;&#160;&#160;|
 |DATETIME&#160;&#160;&#160;&#160;|USA|%Y-%m-%d %H.%i.%s|
 
 **示例：**
@@ -1345,8 +1345,611 @@ GET_FORMAT(DATE,'USA')返回的显示格式字符换为'%m.%d.%Y'，对照表DAT
 
 ---
 
+## 5.条件判断函数
+
+### 5.1 IF(expr,v1,v2)函数
+
+IF(expr,v1,v2)，若表达式expr是TRUE(expr<>0 and expr<>NULL)，则IF()的返回值为v1，否则返回v2。IF()的返回值为数字或字符串，具体情况视其所在语境而定。
+
+**示例：**
+
+```
+mysql> SELECT IF(1>2,2,3),
+    -> IF(1<2,'yes','no'),
+    -> IF(STRCMP('test','test1'),'no','yes');
++-------------+--------------------+---------------------------------------+
+| IF(1>2,2,3) | IF(1<2,'yes','no') | IF(STRCMP('test','test1'),'no','yes') |
++-------------+--------------------+---------------------------------------+
+|           3 | yes                | no                                    |
++-------------+--------------------+---------------------------------------+
+```
+
+#### 提示：
+
+如果v1或v2中只有一个明确是NULL，则IF()函数的结果类型为非NULL表达式的结果类型。
+
+<br>
+
+### 5.2 IFNULL(v1,v2)函数
+
+IFNULL(v1,v2)假如v1不为NULL，则IFNULL()的返回值为v1；否则返回值为v2。IFNULL()的返回值是数字或是字符串，具体情况取决于其所在的环境。
+
+**示例：**
+
+```
+mysql> SELECT IFNULL(1,2), IFNULL(NULL,10), IFNULL(1/0,'wrong');
++-------------+-----------------+---------------------+
+| IFNULL(1,2) | IFNULL(NULL,10) | IFNULL(1/0,'wrong') |
++-------------+-----------------+---------------------+
+|           1 |              10 | wrong               |
++-------------+-----------------+---------------------+
+```
+
+<br>
+
+### 5.3 CASE函数
+
+`CASE expr WHEN v1 THEN r1[WHEN v2 THEN r2][ELSE rn] END;`
+
+该函数表示，若expr值等于某个vn，则返回对应位置THEN后面的结果。若与所有值都不相等，则返回ELSE后面的m。
+
+**示例：**
+
+```
+mysql> SELECT CASE 2 WHEN 1 THEN 'one' WHEN 2 THEN 'two' ELSE 'more' END;
++------------------------------------------------------------+
+| CASE 2 WHEN 1 THEN 'one' WHEN 2 THEN 'two' ELSE 'more' END |
++------------------------------------------------------------+
+| two                                                        |
++------------------------------------------------------------+
+```
+
+CASE后面的值是2，与第二条分支语句WHEN后面的值相等，因此返回结果为'two'。
+
+`CASE WHEN v1 THEN r1 [WHEN v2 THEN r2][ELSE rn] END;`
+
+该函数表示，某个vn值为TRUE时，返回对应位置THEN后面的结果，所有值都不为TRUE，则返回ELSE后的m。
+
+**示例：**
+
+```
+mysql> SELECT CASE WHEN 1<0 THEN 'true' ELSE 'false' END;
++--------------------------------------------+
+| CASE WHEN 1<0 THEN 'true' ELSE 'false' END |
++--------------------------------------------+
+| false                                      |
++--------------------------------------------+
+```
+
+---
 
 
+## 6.系统信息函数
 
+### 6.1 获取MySQL版本号，连接数和数据库名的函数
 
+VERSION()返回指示MySQL服务器版本的字符串。这个刺符传使用UTF-8字符集。
 
+**示例：**
+
+```
+mysql> SELECT VERSION();
++-----------+
+| VERSION() |
++-----------+
+| 8.0.18    |
++-----------+
+```
+
+CONNECTION_ID()返回MySQL服务器当前连接的次数，每个连接都有各自唯一的ID。
+
+**示例：**
+
+```
+mysql> SELECT CONNECTION_ID();
++-----------------+
+| CONNECTION_ID() |
++-----------------+
+|              11 |
++-----------------+
+```
+
+`SHOW PROCESSLIST;SHOW FULL PROCESSLIST;`:PROCESSLIST命令的输出结果显示了有哪些线程在运行，不急可以查看当前所有的连接数，还可以查看当前的连接状态，帮助识别出有问题的查询语句等。
+
+若是root账号，能看到所有用户的当前连接。如果是其他普通账号，则只能看到自己占用的连接。
+
+`SHOW PROCESSLIST;`只能列出100条；
+
+`SHOW FULL PROCESSLIST;`能列出全部；
+
+```
+mysql> SHOW PROCESSLIST;
++----+-----------------+-----------------+---------+---------+--------+------------------------+------------------+
+| Id | User            | Host            | db      | Command | Time   | State                  | Info             |
++----+-----------------+-----------------+---------+---------+--------+------------------------+------------------+
+|  4 | event_scheduler | localhost       | NULL    | Daemon  | 432879 | Waiting on empty queue | NULL             |
+| 11 | root            | localhost:60189 | company | Query   |      0 | starting               | SHOW PROCESSLIST |
++----+-----------------+-----------------+---------+---------+--------+------------------------+------------------+
+
+mysql> SHOW FULL PROCESSLIST;
++----+-----------------+-----------------+---------+---------+--------+------------------------+-----------------------+
+| Id | User            | Host            | db      | Command | Time   | State                  | Info                  |
++----+-----------------+-----------------+---------+---------+--------+------------------------+-----------------------+
+|  4 | event_scheduler | localhost       | NULL    | Daemon  | 432889 | Waiting on empty queue | NULL                  |
+| 11 | root            | localhost:60189 | company | Query   |      0 | starting               | SHOW FULL PROCESSLIST |
++----+-----------------+-----------------+---------+---------+--------+------------------------+-----------------------+
+```
+
+各列的含义和用途：
+1. Id：用户登录MySQL时，系统分配的"command id"
+2. User：显示当前用户。若不是root，这个命令只显示用户权限范围内的SQL语句；
+3. Host：显示这个语句从哪个IP的哪个端口上发出的，可以用来追踪出现问题语句的用户；
+4. db：显示这个进程目前连接的是哪个数据库；
+5. Command：显示当前连接执行的命令，一般取值为休眠(Sleep)，查询(Query)，连接(Connect)；
+6. Time：显示这个状态持续的时间，单位是秒；
+7. State：显示使用当前连接的SQL语句的状态，很重要的列，后续会有所有状态的描述，State只是语句执行中的某一个状态。一个SQL语句，以查询为例，可能需要经过Copying to tmp table, Sorting result, Sending data等状态才可以完成；
+8. Info：显示这个SQL语句，是判断问题语句的一个重要依据；
+
+DATEBASE()和SCHEMA()函数返回使用UTF-8字符集的默认（当前）数据库名。
+
+**示例：**
+
+```
+mysql> SELECT DATABASE(),SCHEMA();
++------------+----------+
+| DATABASE() | SCHEMA() |
++------------+----------+
+| company    | company  |
++------------+----------+
+```
+
+<br>
+
+### 6.2 获取用户名的函数
+
+USER()，CURRENT_USER，SYSTEM_USER()和SESSION_USER()这几个函数返回当前被MySQL服务器验证的用户名和主机名组合。这个值符合确定当前登录用户存取权限的MySQL账号。一般情况下，这几个函数的返回值都是相同的。
+
+**示例：**
+
+```
+mysql> SELECT USER(),CURRENT_USER(),SYSTEM_USER();
++----------------+----------------+----------------+
+| USER()         | CURRENT_USER() | SYSTEM_USER()  |
++----------------+----------------+----------------+
+| root@localhost | root@localhost | root@localhost |
++----------------+----------------+----------------+
+```
+
+其中，root为当前登录的用户名，localhost为登录的主机名。
+
+<br>
+
+### 6.3 获取字符串的字符集和排序方式的函数
+
+CHARSET(str)返回字符串str自变量的字符集。
+
+**示例：**
+
+```
+mysql> SELECT CHARSET('abc'),
+    -> CHARSET(CONVERT('abc' USING latin1)),
+    -> CHARSET(VERSION());
++----------------+--------------------------------------+--------------------+
+| CHARSET('abc') | CHARSET(CONVERT('abc' USING latin1)) | CHARSET(VERSION()) |
++----------------+--------------------------------------+--------------------+
+| utf8mb4        | latin1                               | utf8               |
++----------------+--------------------------------------+--------------------+
+```
+
+COLLATION(str)返回字符串排列方式。
+
+**示例：**
+
+```
+mysql> SELECT COLLATION('abc'),COLLATION(CONVERT('abc' USING utf8));
++--------------------+--------------------------------------+
+| COLLATION('abc')   | COLLATION(CONVERT('abc' USING utf8)) |
++--------------------+--------------------------------------+
+| utf8mb4_0900_ai_ci | utf8_general_ci                      |
++--------------------+--------------------------------------+
+```
+
+<br>
+
+### 6.4 获取最后一个自动生成的ID值的函数
+
+LAST_INSERT_ID()自动返回最后一个INSERT或UPDATE为AUTP_INCREMENT列设置的第一个发生的值。
+
+**示例：**
+
+1.一次插入一条记录
+
+首先创建表worker，其ID字段带有AUTO_INCREMENT约束
+
+```
+mysql> CREATE TABLE worker
+    -> (
+    -> Id INT AUTO_INCREMENT NOT NULL PRIMARY KEY,
+    -> Name VARCHAR(30)
+    -> );
+Query OK, 0 rows affected (0.08 sec)
+
+mysql> INSERT INTO worker VALUES (NULL, 'jimy');
+Query OK, 1 row affected (0.02 sec)
+
+mysql> INSERT INTO worker VALUES (NULL, 'Tom');
+Query OK, 1 row affected (0.01 sec)
+
+mysql> SELECT * FROM worker;
++----+------+
+| Id | Name |
++----+------+
+|  1 | jimy |
+|  2 | Tom  |
++----+------+
+```
+
+从查看表返回的数据可以发现，最后一条插入的记录ID字段是2，使用LAST_INSERT_ID()查看最后自动生成的ID值：
+
+```
+mysql> SELECT LAST_INSERT_ID();
++------------------+
+| LAST_INSERT_ID() |
++------------------+
+|                2 |
++------------------+
+```
+
+可以看到，一次插入一条记录时，返回值为最后一条插入记录的ID值。
+
+2.一次同时插入多条记录
+
+向表中同时插入多条记录：
+
+```
+mysql> INSERT INTO worker VALUES (NULL, 'Kevin'),(NULL,'Michal'),(NULL,'Nick');
+Query OK, 3 rows affected (0.01 sec)
+Records: 3  Duplicates: 0  Warnings: 0
+
+mysql> SELECT * FROM worker;
++----+--------+
+| Id | Name   |
++----+--------+
+|  1 | jimy   |
+|  2 | Tom    |
+|  3 | Kevin  |
+|  4 | Michal |
+|  5 | Nick   |
++----+--------+
+```
+
+可以看到，最后一条记录的ID字段值为5，使用LAST_INSERT_ID()查看最后自动生成的ID值：
+
+```
+mysql> SELECT LAST_INSERT_ID();
++------------------+
+| LAST_INSERT_ID() |
++------------------+
+|                3 |
++------------------+
+```
+
+结果显示LAST_INSERT_ID的值是5而不是3。因为向数据表插入一条新记录时，LAST_INSERT_ID()返回带有AUTO_INCREMENT约束的字段最新生成的值是2；继续向表中同时添加3条记录（使用一条INSERT语句插入多行）时，LAST_INSERT_ID()只返回插入的第一行数据时产生的值。之所以这样，是因为这使依靠其他服务器复制同样的INSERT语句变得简单。
+
+#### 提示：
+
+LAST_INSERT_ID是与table无关的，如果向表a插入数据之后，再向表b插入数据，LAST_INSERT_ID返回表b中的ID值。
+
+---
+
+## 7.加/解密函数
+
+### 7.1 加密函数PASSWORD(str)
+
+PASSWORD(str)从原明文密码str计算并返回加密后的密码字符串，当参数为NULL时，返回NULL。【该方法在5.7.9之后被废弃！】
+
+<br>
+
+### 7.2 加密函数MD5(str)
+
+MD5(str)为字符串算出一个MD5 128比特校验和。该值以32位十六进制数字的二进制字符串形式返回，若参数位NULL，则返回NULL。
+
+**示例：**
+
+```
+mysql> SELECT MD5('mypwd');
++----------------------------------+
+| MD5('mypwd')                     |
++----------------------------------+
+| 318bcb4be908d0da6448a0db76908d78 |
++----------------------------------+
+```
+
+可以看到，"mypwd"经MD5加密后得结果位318bcb4be908d0da6448a0db76908d78。
+
+<br>
+
+### 7.3 加密函数ENCODE(str,pswd_str)
+
+ENCODE(str,pswd_str)使用pswd_str作为密码，加密str。使用DECODE()解密结果，是一个和str长度相同的二进制字符串。
+
+---
+
+## 8.其他函数
+
+### 8.1 格式化函数FORMAT(x,n)
+
+FORMAT(x,n)将数字x格式化，并以四舍五入的方式保留小数点后n位，结果以字符串的形式返回。若n为0，则返回结果不含小数部分。
+
+**示例：**
+
+```
+mysql> SELECT FORMAT(12332.123456,4), FORMAT(12332.1,4), FORMAT(12332.0,0);
++------------------------+-------------------+-------------------+
+| FORMAT(12332.123456,4) | FORMAT(12332.1,4) | FORMAT(12332.0,0) |
++------------------------+-------------------+-------------------+
+| 12,332.1235            | 12,332.1000       | 12,332            |
++------------------------+-------------------+-------------------+
+```
+
+可以看到，FORMAT(12332.123456,4)保留4位小数点值，并进行四舍五入，结果为12332.12345；FORMAT(12332.1,4)保留4为小数值，位数不够的用0补齐；FORMAT(12332.0,0)不保留小数位值，返回结果为整数12332。
+
+<br>
+
+### 8.2 不同进制的数字进行转换的函数
+
+CONV(N,from_base,to_base)函数进行不同进制数间的转换。返回值为数值N的字符串表示，由from_base进制转化为to_base进制。若有任意一个参数为NULL，则返回值为NULL。自变量N被理解为一个整数，但是可以被指定为一个整数或字符串。最小基数为2，而最大基数则为36。
+
+**示例：**
+
+```
+mysql> SELECT CONV('a',16,2),
+    -> CONV(15,10,2),
+    -> CONV(15,10,8),
+    -> CONV(15,10,16);
++----------------+---------------+---------------+----------------+
+| CONV('a',16,2) | CONV(15,10,2) | CONV(15,10,8) | CONV(15,10,16) |
++----------------+---------------+---------------+----------------+
+| 1010           | 1111          | 17            | F              |
++----------------+---------------+---------------+----------------+
+```
+
+<br>
+
+### 8.3 IP地址与数字相互转换的函数
+
+INET_ATON(expr)给出一个作为字符串的网络地址的地点址表示，返回一个代表地址数值的整数。地址可以是4或8bit地址。
+
+**示例：**
+
+```
+mysql> SELECT INET_ATON('209.207.224.40');
++-----------------------------+
+| INET_ATON('209.207.224.40') |
++-----------------------------+
+|                  3520061480 |
++-----------------------------+
+```
+
+产生的数字按照网络字节顺序。如上面的例子，计算方法为：209\*256^3+207\*256^2+224*256+40;
+
+INET_NTOA(expr)给定一个数字网络地址（4或者8bit），返回作为字符串的该地点的地址表示。
+
+**示例：**
+
+```
+mysql> SELECT INET_NTOA(3520061480);
++-----------------------+
+| INET_NTOA(3520061480) |
++-----------------------+
+| 209.207.224.40        |
++-----------------------+
+```
+
+可以看到，INET_NTOA和INET_ATON互为反函数。
+
+<br>
+
+### 8.4 加锁函数和解锁函数
+
+GET_LOCK(str,timeout)设法使用字符串str给定的名字得到一个锁，持续时间timeout秒。若成功得到锁，则返回1；若操作超时，则返回0；若发生错误，则返回NULL。
+
+假如有一个用GET_LOCK()得到的锁，当执行RELEASE_LOCK()或连接断开（正常或非正常）时，这个就会解除。
+
+RELAESE_LOCK(str)解开被GET_LOCK()获取的，用字符串str所命名的锁。若锁被解开，则返回1；若该线程尚未被创建，则返回0（此时锁没有被解开）；若命名的锁不存在，则返回NULL。若该锁从未被GET_LOCK()的调用获取，或锁已经被提前解开，则该锁不存在。
+
+IS_FREE_LOCK(str)检查名为str的锁是否可以使用（换言之，没有被封锁）。若锁可以使用，则返回1（没人在用这个锁）；若这个锁正在被使用，则返回0；出现错误，则返回NULL（诸如不正确的参数）。
+
+IS_USED_LOCK(str)检查名为str的锁是否正在被使用（换言之，被封锁）。若被封锁，则返回使用该锁的客户端的连接标识符（connection ID）；否则，返回NULL。
+
+**示例：**
+
+```
+mysql> SELECT GET_LOCK('lock1',10) AS GetLock,
+    -> IS_USED_LOCK('lock1') AS ISUsedLock,
+    -> IS_FREE_LOCK('lock1') AS ISFreeLock,
+    -> RELEASE_LOCK('lock1') AS ReleaseLock;
++---------+------------+------------+-------------+
+| GetLock | ISUsedLock | ISFreeLock | ReleaseLock |
++---------+------------+------------+-------------+
+|       1 |         13 |          0 |           1 |
++---------+------------+------------+-------------+
+```
+
+GET_LOCK('lock1',10)返回结果为1，说明成功得到一个名称为'lock1'的锁，持续时间为10秒；
+
+IS_USED_LOCK('lock1')返回结果为当前连接的ID，表示名称为'lock1'的锁正在被使用；
+
+IS_FREE_LOCK('lock1')返回结果为0，说明名称为'lock1'的锁正在被使用；
+
+RELEASE_LOCK('lock1')返回值1，说明解锁成功；
+
+<br>
+
+### 8.5 重复执行指定操作的函数
+
+BENCHMARK(count,expr)函数重复count次执行表达式expr。它可以用于计算MySQL处理表达式的速度。结果值通常为0（0只是表示处理过程很快，并不是没有花费时间）。另外一个作用是它可以在MySQL客户端内部报告语句执行的时间。
+
+**示例：**
+
+```
+mysql> SELECT MD5('newpwd');
++----------------------------------+
+| MD5('newpwd')                    |
++----------------------------------+
+| a5e3094ce553e08de5ba237525b106d5 |
++----------------------------------+
+1 row in set (0.00 sec)
+
+mysql> SELECT BENCHMARK(500000, MD5('newpwd'));
++----------------------------------+
+| BENCHMARK(500000, MD5('newpwd')) |
++----------------------------------+
+|                                0 |
++----------------------------------+
+1 row in set (0.19 sec)
+```
+
+#### 提示：
+
+BENCHMARK报告的时间是客户端经过的时间，而不是在服务器的CPU时间，每次执行后报告的时间并不一定是相同的。
+
+<br>
+
+### 8.6 改变字符集的函数
+
+CONVERT(...USING...)带有USING的CONVERT()函数被用来在不同的字符集之间转化数据。
+
+**示例：**
+
+```
+mysql> SELECT CHARSET('string'), CHARSET(CONVERT('string' USING latin1));
++-------------------+-----------------------------------------+
+| CHARSET('string') | CHARSET(CONVERT('string' USING latin1)) |
++-------------------+-----------------------------------------+
+| utf8mb4           | latin1                                  |
++-------------------+-----------------------------------------+
+```
+
+默认为utf8字符集，通过CONVERT将字符串"string"的默认字符集改为latin1。
+
+<br>
+
+#### 8.7 改变数据类型的函数
+
+CAST(x,AS type)和CONVERT(x,type)函数将一个类型的值转换为另一个类型的值，可转换的type由：BINARY，CHAR(n)，DATE，TIME，DATETIME，DECIMAL，SIGNED，UNSIGNED。
+
+**示例：**
+
+```
+mysql> SELECT CAST(100 AS CHAR(2)), CONVERT('2010-10-01 12:12:12',TIME);
++----------------------+-------------------------------------+
+| CAST(100 AS CHAR(2)) | CONVERT('2010-10-01 12:12:12',TIME) |
++----------------------+-------------------------------------+
+| 10                   | 12:12:12                            |
++----------------------+-------------------------------------+
+```
+
+---
+
+## 9.综合案例
+
+1.使用数学函数RAND()生成3个10以内的随机整数；
+
+```
+mysql> SELECT ROUND(RAND()*10), ROUND(RAND()*10), ROUND(RAND()*10);
++------------------+------------------+------------------+
+| ROUND(RAND()*10) | ROUND(RAND()*10) | ROUND(RAND()*10) |
++------------------+------------------+------------------+
+|                2 |                9 |                7 |
++------------------+------------------+------------------+
+```
+
+2.使用SIN()，COS()，TAN()，COT()函数计算三角函数值，并将计算结果转换成整数值；
+
+```
+mysql> SELECT PI(), SIN(PI()/2), COS(PI()), ROUND(TAN(PI()/4)), FLOOR(COT(PI()/4));
++----------+-------------+-----------+--------------------+--------------------+
+| PI()     | SIN(PI()/2) | COS(PI()) | ROUND(TAN(PI()/4)) | FLOOR(COT(PI()/4)) |
++----------+-------------+-----------+--------------------+--------------------+
+| 3.141593 |           1 |        -1 |                  1 |                  1 |
++----------+-------------+-----------+--------------------+--------------------+
+```
+
+3.创建表，并使用字符串和日期函数，对字段进行操作：
+1. 创建表member，其中包含5个字段，分别为AUTO_INCREMENT约束的m_id字段，VARCHAR类型的m_FN字段，VARCHAR类型的m_LN字段，DATETIME类型的m_birth字段和VARCHAR类型的m_info字段；
+2. 插入一条记录，m_id值为默认，m_FN值为"Halen"，m_LN值为"Park"，m_birth值为1970-06-29，m_info值为"GoodMan"；
+3. 返回m_FN的长度，返回第一条记录中的人的全名，将m_info字段值转换成小写字母。将m_info的值反向输出；
+4. 计算第一条记录中人的年龄，并计算m_birth字段中的值在那一年中的位置，按照"Saturday October 4th 1997"格式输出时间值；
+5. 插入一条新的记录，m_FN值为"Samuel"，m_LN值为"Green"，m_birth值为系统当前时间，m_info为空。使用LAST_INSERT_ID()查看最后插入的ID值；
+
+操作过程如下：
+
+```
+mysql> CREATE TABLE amember
+    -> (
+    -> m_id INT(11) AUTO_INCREMENT PRIMARY KEY,
+    -> m_FN VARCHAR(100),
+    -> m_LN VARCHAR(100),
+    -> m_birth DATETIME,
+    -> m_info VARCHAR(255) NULL
+    -> );
+Query OK, 0 rows affected, 1 warning (0.14 sec)
+
+mysql> INSERT INTO amember VALUES(NULL, 'Helen', 'Park', '1970-06-29', 'GoodMan');
+Query OK, 1 row affected (0.06 sec)
+
+mysql> SELECT * FROM amember;
++------+-------+------+---------------------+---------+
+| m_id | m_FN  | m_LN | m_birth             | m_info  |
++------+-------+------+---------------------+---------+
+|    1 | Helen | Park | 1970-06-29 00:00:00 | GoodMan |
++------+-------+------+---------------------+---------+
+1 row in set (0.05 sec)
+
+mysql> SELECT LENGTH(m_FN), CONCAT(m_FN, m_LN), LOWER(m_info), REVERSE(m_info) FROM amember;
++--------------+--------------------+---------------+-----------------+
+| LENGTH(m_FN) | CONCAT(m_FN, m_LN) | LOWER(m_info) | REVERSE(m_info) |
++--------------+--------------------+---------------+-----------------+
+|            5 | HelenPark          | goodman       | naMdooG         |
++--------------+--------------------+---------------+-----------------+
+1 row in set (0.05 sec)
+
+mysql> SELECT YEAR(CURDATE()-YEAR(m_birth)) AS age, DAYOFYEAR(m_birth) AS days, DATE_FORMAT(m_birth,'%W %D %M %Y') AS birthDate FROM amember;
++------+------+-----------------------+
+| age  | days | birthDate             |
++------+------+-----------------------+
+| NULL |  180 | Monday 29th June 1970 |
++------+------+-----------------------+
+1 row in set, 1 warning (0.05 sec)
+mysql> INSERT INTO amember VALUES(NULL, 'Samuel', 'Green', NOW(), NULL);
+Query OK, 1 row affected (0.05 sec)
+
+mysql> SELECT * FROM amember;
++------+--------+-------+---------------------+---------+
+| m_id | m_FN   | m_LN  | m_birth             | m_info  |
++------+--------+-------+---------------------+---------+
+|    1 | Helen  | Park  | 1970-06-29 00:00:00 | GoodMan |
+|    2 | Samuel | Green | 2019-11-22 17:13:28 | NULL    |
++------+--------+-------+---------------------+---------+
+2 rows in set (0.00 sec)
+
+mysql> SELECT LAST_INSERT_ID();
++------------------+
+| LAST_INSERT_ID() |
++------------------+
+|                2 |
++------------------+
+1 row in set (0.00 sec)
+
+mysql> SELECT m_birth, CASE WHEN YEAR(m_birth) < 2000 THEN 'old' WHEN YEAR(m_birth) > 2000 THEN 'young' ELSE 'not born' END AS status FROM amember;
++---------------------+--------+
+| m_birth             | status |
++---------------------+--------+
+| 1970-06-29 00:00:00 | old    |
+| 2019-11-22 17:13:28 | young  |
++---------------------+--------+
+2 rows in set (0.00 sec)
+```
+
+---
